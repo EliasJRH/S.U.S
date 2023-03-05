@@ -25,7 +25,7 @@ while True:
         try:
             with speech_recognition.Microphone() as mic:
                 speech_recognizer.adjust_for_ambient_noise(mic)
-                audio = speech_recognizer.listen(mic)
+                audio = speech_recognizer.listen(mic, phrase_time_limit=5)
 
                 user_prompt_text = speech_recognizer.recognize_google(audio)
 

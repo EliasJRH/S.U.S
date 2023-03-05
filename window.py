@@ -30,6 +30,6 @@ def main():
 
   window.close()
 
-signal.signal(signal.SIGUSR1, handle_sigusr1)
-signal.signal(signal.SIGUSR2, handle_sigusr2)
+# signal.signal(signal.SIGUSR1, handle_sigusr1)
+# signal.signal(signal.SIGUSR2, handle_sigusr2)
 main()

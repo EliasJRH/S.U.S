@@ -71,7 +71,9 @@ def main():
         # If state is SPEAKING, spawn speaking subprocess, 
         elif current_state == State.SPEAKING:
             print("creating subprocess...")
-            speaking_PID = Popen(["Scripts/python", "speak.py", current_speaking_text]).pid
+            speaking_proc = Popen(["Scripts/python", "speak.py", current_speaking_text])
+            speaking_PID = speaking_proc.pid
+            speaking_proc.send_signal(signal.SIGUSR2)
             print(speaking_PID)
             current_speaking_text = ""
             current_state = State.PASSIVE_LISTENING

@@ -31,7 +31,6 @@ def main():
 
     # Spawn UI window
     window_PID = Popen(["Scripts/python", "window.py", str(os.getpid())]).pid
-    print(f"Window process id {window_PID}")
 
     while True:
         print("Current state:", current_state.name)
@@ -49,12 +48,18 @@ def main():
 
                     # If ACTIVATE_KEY is heard, kill any speaking process and switch to ACTIVE_LISTENING state 
                     if current_state == State.PASSIVE_LISTENING and ACTIVATE_KEY in user_prompt_text:
-                        if speaking_PID: os.kill(speaking_PID, signal.SIGTERM)
+                        try:
+                            if speaking_PID: os.kill(speaking_PID, signal.SIGTERM)
+                        except WindowsError as e:
+                            pass
                         current_state = State.ACTIVE_LISTENING
 
                     # If STOP_KEY is heard, kill any speaking process, state remains PASSIVE_LISTENING
                     elif current_state == State.PASSIVE_LISTENING and STOP_KEY in user_prompt_text:
-                        if speaking_PID: os.kill(speaking_PID, signal.SIGTERM)
+                        try:
+                            if speaking_PID: os.kill(speaking_PID, signal.SIGTERM)
+                        except WindowsError as e:
+                            pass
 
                     # If state is ACTIVE_LISTENING, send next prompt to OpenAI API, then switch to speaking state
                     elif current_state == State.ACTIVE_LISTENING:
@@ -63,18 +68,16 @@ def main():
                         current_speaking_text = completion.choices[0].message.content
                         current_state = State.SPEAKING
 
-            
+
             except Exception as e:
                 print("I couldn't recognize that, speak again")
                 current_state = State.PASSIVE_LISTENING
         
         # If state is SPEAKING, spawn speaking subprocess, 
         elif current_state == State.SPEAKING:
-            print("creating subprocess...")
+            print("creating tts subprocess...")
             speaking_proc = Popen(["Scripts/python", "speak.py", current_speaking_text])
             speaking_PID = speaking_proc.pid
-            # speaking_proc.send_signal(signal.SIGUSR2)
-            print(speaking_PID)
             current_speaking_text = ""
             current_state = State.PASSIVE_LISTENING
 

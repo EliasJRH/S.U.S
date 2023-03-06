@@ -11,7 +11,8 @@ from subprocess import Popen
 from enum import Enum
 
 ACTIVATE_KEY = "hey there"
-STOP_KEY = "hey stop"
+SHUTDOWN_KEY = "hey shut down"
+
 def main():
     speech_recognizer = speech_recognition.Recognizer() # Initialize speech recognizer
 
@@ -40,26 +41,30 @@ def main():
             try:
                 with speech_recognition.Microphone() as mic:
                     speech_recognizer.adjust_for_ambient_noise(mic) # Establishes ambient noise level
-                    audio = speech_recognizer.listen(mic)
+                    audio = speech_recognizer.listen(mic, phrase_time_limit=5)
     
                     user_prompt_text = speech_recognizer.recognize_google(audio)
 
                     print("text:", user_prompt_text)
 
-                    # If ACTIVATE_KEY is heard, kill any speaking process and switch to ACTIVE_LISTENING state 
-                    if current_state == State.PASSIVE_LISTENING and ACTIVATE_KEY in user_prompt_text:
+                    # This if statement only executes if speech exception is not thrown from listen function
+                    # If audio is heard, kill current speaking process
+                    if current_state == State.PASSIVE_LISTENING:
                         try:
-                            if speaking_PID: os.kill(speaking_PID, signal.SIGTERM)
+                            if speaking_PID: 
+                                os.kill(speaking_PID, signal.SIGTERM)
+                                speaking_PID = None
                         except WindowsError as e:
                             pass
-                        current_state = State.ACTIVE_LISTENING
-
-                    # If STOP_KEY is heard, kill any speaking process, state remains PASSIVE_LISTENING
-                    elif current_state == State.PASSIVE_LISTENING and STOP_KEY in user_prompt_text:
-                        try:
-                            if speaking_PID: os.kill(speaking_PID, signal.SIGTERM)
-                        except WindowsError as e:
-                            pass
+                        
+                        # Only switch to ACTIVE_LISTENING state if ACTIVATE_KEY is in the user prompt
+                        if ACTIVATE_KEY in user_prompt_text: current_state = State.ACTIVE_LISTENING
+                        elif SHUTDOWN_KEY in user_prompt_text:
+                            try:
+                                os.kill(window_PID, signal.SIGTERM)
+                                return
+                            except WindowsError as e:
+                                pass
 
                     # If state is ACTIVE_LISTENING, send next prompt to OpenAI API, then switch to speaking state
                     elif current_state == State.ACTIVE_LISTENING:
@@ -67,7 +72,6 @@ def main():
                         print(completion.choices[0].message.content)
                         current_speaking_text = completion.choices[0].message.content
                         current_state = State.SPEAKING
-
 
             except Exception as e:
                 print("I couldn't recognize that, speak again")

@@ -1,23 +1,38 @@
 import PySimpleGUI as sg
 import os, sys, signal
+import dotenv
+import threading
+from multiprocessing.connection import Client, Listener
 
-IMPOSTOR_FILE_PATH = "media/Impostor.png"
+# REFACTOR THIS FILE SO THAT ALL INSTRUCTIONS STAY IN FUNCTIONS
+# MAIN SHOULD CONTAIN ALL OF THIS CODE EXCEPT FOR CONSTANTS
+# THEN PASS IN APPROPRIATE ARGUMENTS WHEN CREATING THREADS
+
+PASSIVE_LISTENING_ICON = "media/passive_listening.png"
+ACTIVE_LISTENING_ICON = "media/active_listening.png"
 TWERK_FILE_PATH = "media/among-us-twerk.gif"
 
-layout = [ [sg.Text("Smart Ubiquitous Speaker", key='-bold-', justification='center')],[sg.Image(IMPOSTOR_FILE_PATH, key="-image-")] ]
+ppid = int(sys.argv[1])
+
+layout = [ [sg.Text("Smart Ubiquitous Speaker", key='-bold-', justification='center')],[sg.Image(PASSIVE_LISTENING_ICON, key="-image-")] ]
 window = sg.Window('S(mart) U(biquitous) S(peaker)', layout)
 
-# def handle_sigusr1():
-#   window["-image-"].update(IMPOSTOR_FILE_PATH)
+window_address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
+main_address = ('localhost', 6001)
 
-# def handle_sigusr2():
-#   window["-image-"].update(TWERK_FILE_PATH)
+window_to_main_conn = Client(main_address, authkey=b"%s" % dotenv.dotenv_values()['MAIN_LISTENER_KEY'].encode())
 
-def main():
-  ppid = int(sys.argv[1])
-  # print(f"This process id: {os.getpid()}")
-  # print(f"Parent process id: {ppid}")
+window_listener = Listener(window_address, authkey=b"%b" % dotenv.dotenv_values()['WINDOW_LISTENER_KEY'].encode())
+main_to_window_conn = window_listener.accept()
 
+def handle_updates():
+   while True:
+      update = main_to_window_conn.recv()
+      if update == "passive": window["-image-"].Update(PASSIVE_LISTENING_ICON)
+      elif update == "active": window["-image-"].Update(ACTIVE_LISTENING_ICON)
+      
+
+def create_window():
   sg.theme('DarkAmber')   # Add a touch of color
   # All the stuff inside your window.
 
@@ -25,12 +40,15 @@ def main():
   while True:
       event, values = window.read()
       if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-          os.kill(ppid, signal.SIGTERM)
-          break
-      print('You entered ', values[0])
+          os.kill(ppid, signal.SIGTERM) # change to send signal to exit
+          window.close()
+          sys.exit()
 
-  window.close()
+def main():
+  window_thread = threading.Thread(target=create_window, args=())
+  update_thread = threading.Thread(target=handle_updates, args=())
+  window_thread.start()
+  update_thread.start()
+  
 
-# signal.signal(signal.SIGUSR1, handle_sigusr1)
-# signal.signal(signal.SIGUSR2, handle_sigusr2)
 main()

@@ -2,6 +2,7 @@
 import speech_recognition
 import openai
 import dotenv
+import threading
 
 # Libraries required for spawning listening and GUI subprocesses
 import os
@@ -15,16 +16,22 @@ from multiprocessing.connection import Client, Listener
 ACTIVATE_KEY = "hey there"
 SHUTDOWN_KEY = "hey shut down"
 
+# Enums represent state of speaker
+# PASSIVE_LISTENING - Speaker is listening for ACTIVATE_KEY in transcribed speech
+# ACTIVE_LISTENING - Speaker is listening for next speech prompt to send to OpenAI API
+# SPEAKER - Speaker spawns speaking subprocess and plays audio
+State = Enum('State', ['PASSIVE_LISTENING', 'ACTIVE_LISTENING', 'SPEAKING']) 
+
+def handle_updates():
+	pass
+
+def activate_speaker():
+	pass
+
 def main():
 	speech_recognizer = speech_recognition.Recognizer() # Initialize speech recognizer
 
 	openai.api_key = dotenv.dotenv_values()['OPEN_AI_API_KEY'] # Configure OpenAI API key
-
-	# Enums represent state of speaker
-	# PASSIVE_LISTENING - Speaker is listening for ACTIVATE_KEY in transcribed speech
-	# ACTIVE_LISTENING - Speaker is listening for next speech prompt to send to OpenAI API
-	# SPEAKER - Speaker spawns speaking subprocess and plays audio
-	State = Enum('State', ['PASSIVE_LISTENING', 'ACTIVE_LISTENING', 'SPEAKING']) 
 
 	# Initial state starts at passive listening
 	current_state = State.PASSIVE_LISTENING

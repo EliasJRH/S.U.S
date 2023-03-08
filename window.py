@@ -26,7 +26,7 @@ def create_window(window, window_to_main_conn, ppid):
   # Event Loop to process "events" and get the "values" of the inputs
   while True:
       event, values = window.read()
-      if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+      if event == sg.WIN_CLOSED or event == 'Quit': # if user closes window or clicks cancel
           os.kill(ppid, signal.SIGTERM) # change to send signal to exit, need to close parent process before closing this process
           # window_to_main_conn.send("close")
           window.close()
@@ -35,7 +35,7 @@ def create_window(window, window_to_main_conn, ppid):
 def main():
   ppid = int(sys.argv[1])
 
-  layout = [ [sg.Text("Smart Ubiquitous Speaker", key='-bold-', justification='center')],[sg.Image(PASSIVE_LISTENING_ICON, key="-image-")] ]
+  layout = [ [sg.Text("Smart Ubiquitous Speaker", key='-bold-', justification='center')],[sg.Image(PASSIVE_LISTENING_ICON, key="-image-")], [sg.Button('Quit')] ]
   window = sg.Window('S(mart) U(biquitous) S(peaker)', layout)
 
   window_address = ('localhost', 6000)     # family is deduced to be 'AF_INET'

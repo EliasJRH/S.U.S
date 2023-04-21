@@ -47,7 +47,7 @@ def main():
 	main_listener = Listener(main_address, authkey=b"%s" % dotenv.dotenv_values()['MAIN_LISTENER_KEY'].encode())
 
 	# Spawn UI window
-	window_PID = Popen(["Scripts/python", "window.py", str(os.getpid())]).pid
+	window_PID = Popen(["venv/Scripts/python", "window.py", str(os.getpid())]).pid
 
 	# Receive connection from window application
 	window_to_main_conn = main_listener.accept()
@@ -106,7 +106,7 @@ def main():
 		# If state is SPEAKING, spawn speaking subprocess, 
 		elif current_state == State.SPEAKING:
 			print("creating tts subprocess...")
-			speaking_proc = Popen(["Scripts/python", "speak.py", current_speaking_text])
+			speaking_proc = Popen(["venv/Scripts/python", "speak.py", current_speaking_text])
 			speaking_PID = speaking_proc.pid
 			current_speaking_text = ""
 			current_state = State.PASSIVE_LISTENING

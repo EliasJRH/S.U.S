@@ -35,7 +35,7 @@ source venv/bin/activate
 
 `python main.py`
 
-*Note: In order to run the program, you will need to have a GPT3 API key. You can get one [here](https://beta.openai.com/). Once you have the key, create a file called `.env` in the root directory of the project and add the following line:
+*Note: In order to run the program, you will need to have a GPT API key. You can get one [here](https://beta.openai.com/). Once you have the key, create a file called `.env` in the root directory of the project and add the following line:
 
 `OPENAI_API_KEY=YOUR_API_KEY`
 
